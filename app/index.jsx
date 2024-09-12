@@ -1,29 +1,54 @@
-import { useState } from 'react'
-import { View, Text, Stylesheet, Picker } from 'react-native'
-import styles from './styles.jsx'
+import React, { useEffect, useState } from "react"
+import { View, Text } from "react-native"
+import { Picker } from '@react-native-picker/picker'
+import styles from './styles'
 
 const Pokemon = () => {
     const [pokemon, setPokemon] = useState('')
+    const [tipo, setTipo] = useState('')
+    const [listaPokemons, setListaPokemons] = useState([])
+    const [listaTipos, setListaTipos] = useState([])
 
-    const pokemonList = [
-        {name: 'Charizard', id: 1},
-        {name: 'Blastoise', id: 2},
-        {name: 'Venossaur', id: 3}
-    ]
+    useEffect(() => {
+        fetch("https://pokeapi.co/api/v2/type")
+            .then(resposta => resposta.json())
+            .then(dados => setListaTipos(dados.results))
+            .catch(error => console.log("aconteceu um erro", error))
+    }, [])
+
+    useEffect(() => {
+        if (tipo) {
+            fetch(`https://pokeapi.co/api/v2/type/${tipo}`)
+                .then(resposta => resposta.json())
+                .then(dados => setListaPokemons(dados.pokemon))
+                .catch(error => console.log("aconteceu um erro tipos", error))
+        }
+    }, [tipo])
 
     return (
-        <View>
-            <Text>Selecione</Text>
-            <Picker
-                selectedValue={pokemon}
-                onValueChange={setPokemon}
-            >
-                {pokemonList.map((item, index) => {
-                    <Picker.Item key={index} label={item.name} value={item.url} />
-                })}
+        <View style={styles.container}>
+            <Text>Selecione o tipo</Text>
+            <Picker style={styles.picker} selectedValue={tipo} onValueChange={(item) => setTipo(item)}>
+                {listaTipos.map((item) => (
+                    <Picker.Item key={item.name} label={item.name} value={item.name} />
+                ))}
             </Picker>
+
+            {tipo && (
+                <View>
+                    <Text>Selecione o Pokemon</Text>
+                    <Picker style={styles.picker} selectedValue={pokemon} onValueChange={(item) => setPokemon(item)}>
+                        {listaPokemons.map((item) => (
+                            <Picker.Item key={item.pokemon.name} label={item.pokemon.name} value={item.pokemon.name} />
+                        ))}
+                    </Picker>
+                </View>
+
+            )}
+
+            {pokemon && <Text>Você selecionou {pokemon} do tipo {tipo}</Text>}
         </View>
     )
 }
 
-export default Pokemon
+export default Pokemon 
